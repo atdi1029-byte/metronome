@@ -415,9 +415,9 @@
     env.connect(gainNode);
 
     osc.type = 'sine';
-    osc.frequency.value = isAccent ? 1200 : 900;
-    env.gain.setValueAtTime(isAccent ? 8.0 : 5.0, actx.currentTime);
-    env.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.08);
+    osc.frequency.value = isAccent ? 1400 : 1000;
+    env.gain.setValueAtTime(isAccent ? 20.0 : 14.0, actx.currentTime);
+    env.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.05);
 
     osc.start(actx.currentTime);
     osc.stop(actx.currentTime + 0.08);
