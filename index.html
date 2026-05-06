@@ -447,6 +447,35 @@
   document.getElementById('plus10').addEventListener('click', () => setBpm(bpm + 10));
   document.getElementById('minus10').addEventListener('click', () => setBpm(bpm - 10));
 
+  // Long-press ramp for +1 / -1 buttons
+  function addRamp(btnId, delta) {
+    const btn = document.getElementById(btnId);
+    let rampId = null;
+    let holdTimeout = null;
+
+    function startRamp() {
+      holdTimeout = setTimeout(() => {
+        rampId = setInterval(() => setBpm(bpm + delta), 80);
+      }, 400);
+    }
+    function stopRamp() {
+      clearTimeout(holdTimeout);
+      clearInterval(rampId);
+      rampId = null;
+      holdTimeout = null;
+    }
+
+    btn.addEventListener('mousedown', startRamp);
+    btn.addEventListener('touchstart', e => { e.preventDefault(); startRamp(); }, { passive: false });
+    btn.addEventListener('mouseup', stopRamp);
+    btn.addEventListener('mouseleave', stopRamp);
+    btn.addEventListener('touchend', stopRamp);
+    btn.addEventListener('touchcancel', stopRamp);
+  }
+
+  addRamp('plus1', 1);
+  addRamp('minus1', -1);
+
   document.getElementById('bpm-slider').addEventListener('input', e => {
     setBpm(parseInt(e.target.value));
   });
