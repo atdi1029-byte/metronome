@@ -451,6 +451,8 @@
     const el = document.getElementById('timer');
     el.textContent = formatTime(timerLeft);
     el.className = 'timer-display';
+    // Start immediately if metronome is already running
+    if (running) startTimer();
   }
 
   function startTimer() {
