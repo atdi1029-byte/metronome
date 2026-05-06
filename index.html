@@ -229,6 +229,73 @@
       letter-spacing: 0.1em;
     }
 
+    .timer-presets {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .preset-btn {
+      padding: 7px 14px;
+      border-radius: 16px;
+      border: 2px solid #333;
+      background: #242424;
+      color: #888;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .preset-btn.active {
+      border-color: #4a9eff;
+      color: #4a9eff;
+      background: #182030;
+    }
+    .preset-btn:active { background: #333; }
+
+    .timer-custom-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    #timer-input {
+      width: 80px;
+      padding: 8px 10px;
+      background: #242424;
+      border: 2px solid #333;
+      border-radius: 10px;
+      color: #f0f0f0;
+      font-size: 1rem;
+      text-align: center;
+      outline: none;
+    }
+    #timer-input:focus { border-color: #4a9eff; }
+    #timer-set-btn {
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: 2px solid #333;
+      background: #242424;
+      color: #888;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #timer-set-btn:active { background: #333; }
+
+    .timer-display {
+      font-size: 2.4rem;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      color: #444;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    .timer-display.running { color: #aaa; }
+    .timer-display.warning { color: #ff6b35; }
+    .timer-display.done { color: #e04040; }
+
     .divider {
       width: 100%;
       max-width: 340px;
@@ -301,10 +368,21 @@
   </div>
 
   <!-- Practice Timer -->
-  <div>
-    <div id="timer">0:00</div>
-    <div id="timer-label">tap to reset</div>
+  <div class="divider"></div>
+  <span class="section-label">Practice Timer</span>
+  <div class="timer-presets">
+    <button class="preset-btn" data-min="15">15m</button>
+    <button class="preset-btn" data-min="30">30m</button>
+    <button class="preset-btn" data-min="45">45m</button>
+    <button class="preset-btn" data-min="60">1h</button>
+    <button class="preset-btn" data-min="90">1.5h</button>
   </div>
+  <div class="timer-custom-row">
+    <input type="number" id="timer-input" min="1" max="999" placeholder="min">
+    <button id="timer-set-btn">Set</button>
+  </div>
+  <div id="timer" class="timer-display">--:--</div>
+  <div id="timer-label">tap to reset</div>
 
 <script>
   // --- Audio ---
@@ -344,33 +422,81 @@
   let currentBeat = 0;
   let intervalId = null;
 
-  // --- Timer ---
-  let timerSeconds = 0;
+  // --- Countdown Timer ---
+  let timerTotal = 0;   // seconds set
+  let timerLeft = 0;    // seconds remaining
   let timerInterval = null;
 
   function formatTime(s) {
-    const m = Math.floor(s / 60);
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
     const sec = s % 60;
-    return `${m}:${sec.toString().padStart(2, '0')}`;
+    if (h > 0) return `${h}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+    return `${m}:${sec.toString().padStart(2,'0')}`;
+  }
+
+  function setTimer(minutes) {
+    stopTimer();
+    timerTotal = minutes * 60;
+    timerLeft = timerTotal;
+    const el = document.getElementById('timer');
+    el.textContent = formatTime(timerLeft);
+    el.className = 'timer-display';
   }
 
   function startTimer() {
+    if (timerTotal === 0) return;
+    const el = document.getElementById('timer');
+    el.classList.add('running');
     timerInterval = setInterval(() => {
-      timerSeconds++;
-      document.getElementById('timer').textContent = formatTime(timerSeconds);
+      timerLeft--;
+      el.textContent = formatTime(timerLeft);
+      if (timerLeft <= 60) el.classList.add('warning');
+      if (timerLeft <= 0) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        el.className = 'timer-display done';
+        el.textContent = 'DONE';
+        stopMetronome();
+      }
     }, 1000);
-    document.getElementById('timer').classList.add('running');
   }
 
   function stopTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
-    document.getElementById('timer').classList.remove('running');
   }
 
+  // Reset on tap
   document.getElementById('timer').addEventListener('click', () => {
-    timerSeconds = 0;
-    document.getElementById('timer').textContent = '0:00';
+    stopTimer();
+    if (timerTotal > 0) {
+      timerLeft = timerTotal;
+      const el = document.getElementById('timer');
+      el.textContent = formatTime(timerLeft);
+      el.className = 'timer-display';
+      document.querySelectorAll('.preset-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.dataset.min) * 60 === timerTotal);
+      });
+    }
+  });
+
+  // Preset buttons
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      setTimer(parseInt(btn.dataset.min));
+    });
+  });
+
+  // Custom input
+  document.getElementById('timer-set-btn').addEventListener('click', () => {
+    const val = parseInt(document.getElementById('timer-input').value);
+    if (val > 0) {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      setTimer(val);
+    }
   });
 
   // --- Beat dots ---
@@ -413,7 +539,7 @@
     document.getElementById('start-btn').classList.add('running');
     tick();
     intervalId = setInterval(tick, 60000 / bpm);
-    startTimer();
+    if (timerTotal > 0 && timerLeft > 0) startTimer();
   }
 
   function stopMetronome() {
@@ -425,6 +551,9 @@
     document.getElementById('start-btn').classList.remove('running');
     renderDots();
     stopTimer();
+    if (timerLeft > 0) {
+      document.getElementById('timer').classList.remove('running');
+    }
   }
 
   function setBpm(val) {
