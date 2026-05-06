@@ -3,6 +3,7 @@
   "short_name": "Metronome",
   "description": "Practice metronome that plays alongside your music",
   "start_url": "/metronome/",
+  "scope": "/metronome/",
   "display": "standalone",
   "background_color": "#1a1a1a",
   "theme_color": "#1a1a1a",
