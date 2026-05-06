@@ -414,10 +414,10 @@
     osc.connect(env);
     env.connect(gainNode);
 
+    osc.type = 'square';
     osc.frequency.value = isAccent ? 1200 : 900;
-    // Boosted gains — compressor handles limiting
-    env.gain.setValueAtTime(isAccent ? 4.0 : 2.5, actx.currentTime);
-    env.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.08);
+    env.gain.setValueAtTime(isAccent ? 8.0 : 5.0, actx.currentTime);
+    env.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.06);
 
     osc.start(actx.currentTime);
     osc.stop(actx.currentTime + 0.08);
