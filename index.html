@@ -287,9 +287,9 @@
   <div class="slider-row">
     <div class="slider-label">
       <span>Metronome Volume</span>
-      <span id="vol-val">80%</span>
+      <span id="vol-val">100%</span>
     </div>
-    <input type="range" id="vol-slider" min="0" max="100" value="80">
+    <input type="range" id="vol-slider" min="0" max="100" value="100">
   </div>
 
   <div class="divider"></div>
@@ -316,7 +316,7 @@
       actx = new (window.AudioContext || window.webkitAudioContext)();
       gainNode = actx.createGain();
       gainNode.connect(actx.destination);
-      gainNode.gain.value = 0.8;
+      gainNode.gain.value = 1.0;
     }
     return { actx, gainNode };
   }
@@ -339,7 +339,7 @@
   // --- State ---
   let bpm = 120;
   let beatsPerMeasure = 4;
-  let volume = 0.8;
+  let volume = 1.0;
   let running = false;
   let currentBeat = 0;
   let intervalId = null;
