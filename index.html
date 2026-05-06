@@ -393,8 +393,16 @@
     if (!actx) {
       actx = new (window.AudioContext || window.webkitAudioContext)();
       gainNode = actx.createGain();
-      gainNode.connect(actx.destination);
       gainNode.gain.value = 1.0;
+      // Compressor lets us push well past 1.0 without harsh clipping
+      const comp = actx.createDynamicsCompressor();
+      comp.threshold.value = -6;
+      comp.knee.value = 0;
+      comp.ratio.value = 20;
+      comp.attack.value = 0.001;
+      comp.release.value = 0.1;
+      gainNode.connect(comp);
+      comp.connect(actx.destination);
     }
     return { actx, gainNode };
   }
@@ -407,7 +415,8 @@
     env.connect(gainNode);
 
     osc.frequency.value = isAccent ? 1200 : 900;
-    env.gain.setValueAtTime(isAccent ? 1.0 : 0.6, actx.currentTime);
+    // Boosted gains — compressor handles limiting
+    env.gain.setValueAtTime(isAccent ? 4.0 : 2.5, actx.currentTime);
     env.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.08);
 
     osc.start(actx.currentTime);
