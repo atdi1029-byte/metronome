@@ -108,8 +108,8 @@
     }
     input[type=range] {
       width: 100%;
-      height: 6px;
-      border-radius: 3px;
+      height: 8px;
+      border-radius: 4px;
       appearance: none;
       background: #333;
       outline: none;
@@ -117,8 +117,8 @@
     }
     input[type=range]::-webkit-slider-thumb {
       appearance: none;
-      width: 22px;
-      height: 22px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       background: #4a9eff;
       cursor: pointer;
@@ -593,9 +593,12 @@
     const btn = document.getElementById(btnId);
     let rampId = null;
     let holdTimeout = null;
+    let didRamp = false;
 
     function startRamp() {
+      didRamp = false;
       holdTimeout = setTimeout(() => {
+        didRamp = true;
         rampId = setInterval(() => setBpm(bpm + delta), 80);
       }, 400);
     }
@@ -607,10 +610,16 @@
     }
 
     btn.addEventListener('mousedown', startRamp);
-    btn.addEventListener('touchstart', e => { e.preventDefault(); startRamp(); }, { passive: false });
+    btn.addEventListener('touchstart', e => {
+      e.preventDefault();
+      startRamp();
+    }, { passive: false });
     btn.addEventListener('mouseup', stopRamp);
     btn.addEventListener('mouseleave', stopRamp);
-    btn.addEventListener('touchend', stopRamp);
+    btn.addEventListener('touchend', e => {
+      stopRamp();
+      if (!didRamp) setBpm(bpm + delta);
+    });
     btn.addEventListener('touchcancel', stopRamp);
   }
 
@@ -622,7 +631,9 @@
   });
 
   document.getElementById('vol-slider').addEventListener('input', e => {
-    volume = e.target.value / 100;
+    const pct = e.target.value / 100;
+    // Logarithmic curve so slider feels linear to the ear
+    volume = pct === 0 ? 0 : Math.pow(pct, 2.5);
     document.getElementById('vol-val').textContent = e.target.value + '%';
     if (gainNode) gainNode.gain.value = volume;
   });
